@@ -1,3 +1,4 @@
+
 # 🦷 DentAI
 
 > **AI-Powered Dental X-Ray Analysis & Clinical Decision Support System**
@@ -173,3 +174,4 @@ The objective of DentAI is to develop a production-ready AI-powered dental X-ray
 ## 📜 License
 
 This project is intended for educational and research purposes.
+
