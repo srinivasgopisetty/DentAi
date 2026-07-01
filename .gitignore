@@ -25,3 +25,9 @@ reports/*.pdf
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Generated outputs
+outputs/
+
+# Log files
+*.log
