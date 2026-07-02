@@ -1,15 +1,30 @@
-from fastapi import APIRouter, UploadFile, File
-from backend.app.services.inference import get_model, predict_image
 from pathlib import Path
 import shutil
-from fastapi import HTTPException
+
+from fastapi import APIRouter, UploadFile, File, HTTPException
+
+from backend.app.services.inference import get_model, predict_image
+from backend.app.services.recommendation import generate_recommendations
+
+from backend.app.schemas.response import (
+    PredictionResponse,
+    Analysis,
+    Finding,
+    Summary,
+)
 
 router = APIRouter(prefix="/api/v1")
 
+# Load model once
 model = get_model()
+
+# Upload directory
 UPLOAD_DIR = Path("backend/uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Allowed image formats
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+
 
 @router.get(
     "/health",
@@ -23,8 +38,8 @@ def health_check():
 
 
 @router.get(
-        "/model",
-        tags=["Model"]
+    "/model",
+    tags=["Model"]
 )
 def model_info():
     return {
@@ -32,30 +47,57 @@ def model_info():
         "model_type": str(type(model))
     }
 
+
 @router.post(
     "/predict",
+    response_model=PredictionResponse,
     tags=["Prediction"]
 )
 async def predict(file: UploadFile = File(...)):
 
-    # Save uploaded image
+    # Validate file extension
     image_path = UPLOAD_DIR / file.filename
     extension = image_path.suffix.lower()
 
     if extension not in ALLOWED_EXTENSIONS:
         raise HTTPException(
-        status_code=400,
-        detail="Only JPG, JPEG and PNG images are allowed"
-    )
+            status_code=400,
+            detail="Only JPG, JPEG and PNG images are allowed."
+        )
 
+    # Save uploaded image
     with open(image_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
     # Run AI inference
     detections = predict_image(str(image_path))
 
-    return {
-        "filename": file.filename,
-        "total_detections": len(detections),
-        "detections": detections
-    }
+    # Generate recommendations
+    findings = generate_recommendations(detections)
+
+    return PredictionResponse(
+        analysis=Analysis(
+            filename=file.filename,
+            total_findings=len(findings)
+        ),
+        findings=[
+            Finding(
+                class_name=item["class"],
+                count=item["count"],
+                confidence=item["confidence"],
+                description=item["description"],
+                recommendations=item["recommendation"]
+            )
+            for item in findings
+        ],
+        summary=Summary(
+            detected_conditions=sorted(
+                list({item["class"] for item in findings})
+            )
+        ),
+        disclaimer=(
+            "DentAI is an AI-assisted educational tool. "
+            "It is not a substitute for professional dental diagnosis "
+            "or clinical judgment."
+        )
+    )
