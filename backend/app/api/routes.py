@@ -65,11 +65,16 @@ async def predict(file: UploadFile = File(...)):
 
     with open(image_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+    print("Image saved", flush=True)
 
     detections = predict_image(str(image_path))
-    findings = generate_recommendations(detections)
-    pdf_path = generate_pdf(file.filename, findings)
+    print("Inference completed", flush=True)
 
+    findings = generate_recommendations(detections)
+    print("Recommendations completed", flush=True)
+
+    pdf_path = generate_pdf(file.filename, findings)
+    print("PDF generated", flush=True)
     return PredictionResponse(
         analysis=Analysis(
             filename=file.filename,
