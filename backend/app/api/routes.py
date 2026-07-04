@@ -1,60 +1,11 @@
-from pathlib import Path
-import shutil
-from backend.app.services.pdf_generator import generate_pdf
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from fastapi.responses import FileResponse
-from backend.app.services.inference import get_model, predict_image
-from backend.app.services.recommendation import generate_recommendations
-
-from backend.app.schemas.response import (
-    PredictionResponse,
-    Analysis,
-    Finding,
-    Summary,
-    Detection,
-)
-
-router = APIRouter(prefix="/api/v1")
-
-# Load model once
-model = get_model()
-
-# Upload directory
-UPLOAD_DIR = Path("backend/uploads")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
-# Allowed image formats
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-
-
-@router.get(
-    "/health",
-    tags=["Health"]
-)
-def health_check():
-    return {
-        "status": "healthy",
-        "message": "DentAI API is running"
-    }
-
-
-@router.get(
-    "/model",
-    tags=["Model"]
-)
-def model_info():
-    return {
-        "message": "DentAI model loaded successfully",
-        "model_type": str(type(model))
-    }
-
-
 @router.post(
     "/predict",
     response_model=PredictionResponse,
     tags=["Prediction"]
 )
 async def predict(file: UploadFile = File(...)):
+
+    print("=== /predict endpoint reached ===", flush=True)
 
     # Validate file extension
     image_path = UPLOAD_DIR / file.filename
@@ -117,28 +68,4 @@ async def predict(file: UploadFile = File(...)):
             "It is not a substitute for professional dental diagnosis "
             "or clinical judgment."
         )
-    )
-
-
-@router.get(
-    "/reports/{report_name}",
-    tags=["Reports"]
-)
-def download_report(report_name: str):
-
-    if not report_name.endswith(".pdf"):
-        report_name += ".pdf"
-
-    report_path = Path("backend/reports") / report_name
-
-    if not report_path.exists():
-        raise HTTPException(
-            status_code=404,
-            detail="Report not found."
-        )
-
-    return FileResponse(
-        path=str(report_path),
-        filename=report_name,
-        media_type="application/pdf"
     )
