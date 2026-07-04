@@ -28,6 +28,10 @@ def generate_recommendations(detections):
             "class": class_name,
             "count": len(items),
             "confidence": avg_confidence,
+
+            # NEW
+            "location": items[0]["location"],
+
             "description": info["description"],
             "recommendation": info["recommendation"]
         })

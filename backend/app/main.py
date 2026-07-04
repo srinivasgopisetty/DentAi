@@ -1,3 +1,4 @@
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from backend.app.api.routes import router
 
@@ -28,7 +29,16 @@ DentAI analyzes panoramic dental X-ray images using YOLO11 object detection.
         "name": "MIT License"
     }
 )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(router)
 
 

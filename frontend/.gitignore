@@ -1,0 +1,37 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Uploads & Reports
+backend/uploads/*
+backend/reports/*
+
+# Keep empty folders
+!backend/uploads/.gitkeep
+!backend/reports/.gitkeep
+
+# YOLO
+runs/
+outputs/
+
+# Logs
+*.log
+
+# Models
+*.pt
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Environment
+.env
+frontend/.env
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
