@@ -1,20 +1,26 @@
-from fastapi import APIRouter
+from pathlib import Path
+import shutil
+
+from fastapi import APIRouter, UploadFile, File
 
 router = APIRouter(prefix="/api/v1")
 
-
-@router.get("/health")
-def health():
-    return {
-        "status": "healthy"
-    }
+UPLOAD_DIR = Path("backend/uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/predict")
-async def predict():
-    print("========== PREDICT ENDPOINT HIT ==========", flush=True)
+async def predict(file: UploadFile = File(...)):
+    print("Endpoint reached", flush=True)
+
+    image_path = UPLOAD_DIR / file.filename
+
+    with open(image_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    print("Image saved", flush=True)
 
     return {
-        "status": "success",
-        "message": "Predict endpoint is working."
+        "filename": file.filename,
+        "saved": True
     }
